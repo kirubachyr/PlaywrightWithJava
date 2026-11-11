@@ -1,0 +1,48 @@
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: JavaToolInstaller@0
+    displayName: 'Use Java 17'
+    inputs:
+      versionSpec: '17'
+      jdkArchitectureOption: 'x64'
+      jdkSourceOption: 'PreInstalled'
+
+  - script: |
+      java -version
+      mvn -version
+    displayName: 'Verify Java and Maven'
+
+  # Install browser binaries and OS dependencies for the Playwright Java version
+  # resolved from pom.xml.
+  - script: |
+      mvn exec:java -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install --with-deps"
+    displayName: 'Install Playwright browsers'
+
+  # The TestNG suite runs UI tests on Chromium, Firefox and WebKit.
+  - script: |
+      mvn clean test
+    displayName: 'Run Playwright Java TestNG suite'
+
+  # Surefire writes JUnit-format XML files that Azure DevOps can publish.
+  - task: PublishTestResults@2
+    displayName: 'Publish TestNG results'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/target/surefire-reports/TEST-*.xml'
+      failTaskOnFailedTests: true
+      testRunTitle: 'Playwright Java cross-browser tests'
+
+  # Publish failure screenshots and traces for investigation.
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish screenshots and traces'
+    condition: succeededOrFailed()
+    inputs:
+      targetPath: 'target/artifacts'
+      artifact: 'playwright-artifacts'
+      publishLocation: 'pipeline'

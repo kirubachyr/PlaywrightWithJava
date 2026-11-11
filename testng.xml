@@ -1,0 +1,36 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!--
+  Each TestNG <test> gets its own browser parameter.
+  parallel="tests" allows Chromium, Firefox and WebKit groups to run concurrently.
+  Each test thread receives its own Playwright/browser/context/page from BaseTest.
+-->
+<suite name="Playwright Java Cross Browser Suite"
+       parallel="tests"
+       thread-count="3"
+       verbose="1">
+
+    <test name="Chromium UI Tests">
+        <parameter name="browser" value="chromium"/>
+        <classes>
+            <class name="com.company.qa.tests.LoginTest"/>
+            <class name="com.company.qa.tests.InteractionsTest"/>
+        </classes>
+    </test>
+
+    <test name="Firefox UI Tests">
+        <parameter name="browser" value="firefox"/>
+        <classes>
+            <class name="com.company.qa.tests.LoginTest"/>
+        </classes>
+    </test>
+
+    <test name="WebKit UI Tests">
+        <parameter name="browser" value="webkit"/>
+        <classes>
+            <class name="com.company.qa.tests.LoginTest"/>
+        </classes>
+    </test>
+
+    <!-- API tests do not need a browser. Run them separately from the IDE
+         or add a dedicated API suite if you want them in the same pipeline. -->
+</suite>
